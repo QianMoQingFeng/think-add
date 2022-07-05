@@ -43,7 +43,8 @@ abstract class Addons
     protected $addon_config;
     // 插件信息
     protected $addon_info;
-
+    // 模块信息
+    protected $addon_model = '';
     /**
      * 插件构造函数
      * Addons constructor.
@@ -58,9 +59,16 @@ abstract class Addons
         $this->addon_config = "addon_{$this->name}_config";
         $this->addon_info = "addon_{$this->name}_info";
         $this->view = clone View::engine('Think');
-        $this->view->config([
-            'view_path' => $this->addon_path . 'view' . DIRECTORY_SEPARATOR
-        ]);
+     // 兼容插件多应用模式
+     if(mb_strstr( $this->request->pathinfo(),$this->name.'@')){
+        $str_arr = explode('@', $this->request->pathinfo());
+        $str_arr = explode('/', $str_arr[1]);
+        $this->addon_model = $str_arr[0];
+    }
+ 
+    $this->view->config([
+        'view_path' => $this->addon_path.($this->addon_model ? ( $this->addon_model.'/'):''). 'view' . DIRECTORY_SEPARATOR
+    ]);
 
         // 控制器初始化
         $this->initialize();
@@ -68,7 +76,9 @@ abstract class Addons
 
     // 初始化
     protected function initialize()
-    {}
+    {
+       
+    }
 
     /**
      * 获取插件标识
@@ -79,7 +89,6 @@ abstract class Addons
         $class = get_class($this);
         list(, $name, ) = explode('\\', $class);
         $this->request->addon = $name;
-
         return $name;
     }
 
@@ -144,7 +153,6 @@ abstract class Addons
         if ($info) {
             return $info;
         }
-
         // 文件属性
         $info = $this->info ?? [];
         // 文件配置

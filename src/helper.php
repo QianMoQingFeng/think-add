@@ -126,7 +126,7 @@ if (!function_exists('get_addons_class')) {
             default:
                 $namespace = '\\addons\\' . $name . '\\Plugin';
         }
-
+       
         return class_exists($namespace) ? $namespace : '';
     }
 }

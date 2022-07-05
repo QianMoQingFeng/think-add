@@ -42,6 +42,9 @@ class Route
         $controller = $request->route('controller');
         $action = $request->route('action');
 
+        if($request['module'] == 'admin' && $request['module'] !=app('http')->getName() ){
+            throw new HttpException(500, lang('admin module url error'));
+        }
         Event::trigger('addons_begin', $request);
 
         if (empty($addon) || empty($controller) || empty($action)) {
@@ -63,15 +66,25 @@ class Route
 
         // 监听addon_module_init
         Event::trigger('addon_module_init', $request);
+        
+   
+        // 兼容插件多应用模式
+        if(mb_strstr( $request->pathinfo(),$addon.'@')){
+            $str_arr = explode('@', $request->pathinfo());
+            $str_arr = explode('/', $str_arr[1]);
+            $addon .= '\\'.$str_arr[0];
+        }
+        
         $class = get_addons_class($addon, 'controller', $controller);
         if (!$class) {
             throw new HttpException(404, lang('addon controller %s not found', [Str::studly($controller)]));
         }
 
-        // 重写视图基础路径
-        $config = Config::get('view');
-        $config['view_path'] = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR;
-        Config::set($config, 'view');
+      
+        // 重写视图基础路径 已失效
+        // $config = Config::get('view');
+        // $config['view_path'] = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR;
+        // Config::set($config, 'view');
 
         // 生成控制器对象
         $instance = new $class($app);

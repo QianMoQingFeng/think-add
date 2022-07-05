@@ -25,7 +25,7 @@ class Service extends \think\Service
         $this->addons_path = $this->getAddonsPath();
         // 加载系统语言包
         Lang::load([
-            $this->app->getRootPath() . '/vendor/zzstudio/think-addons/src/lang/zh-cn.php'
+            $this->app->getRootPath() . '/vendor/qianmoqingfeng/think-addons/src/lang/zh-cn.php'
         ]);
         // 自动载入插件
         $this->autoload();
@@ -47,9 +47,13 @@ class Service extends \think\Service
             if (is_file($this->app->addons->getAddonsPath() . 'middleware.php')) {
                 $this->app->middleware->import(include $this->app->addons->getAddonsPath() . 'middleware.php', 'route');
             }
-
+            
             // 注册控制器路由
+       
+            $route->rule("addons/:addon@:module/:controller/:action$", $execute)->middleware(Addons::class); 
+            
             $route->rule("addons/:addon/:controller/:action$", $execute)->middleware(Addons::class);
+
             // 自定义路由
             $routes = (array) Config::get('addons.route', []);
             foreach ($routes as $key => $val) {
@@ -174,6 +178,7 @@ class Service extends \think\Service
             $info = pathinfo($addons_file);
             // 获取插件目录名
             $name = pathinfo($info['dirname'], PATHINFO_FILENAME);
+      
             // 找到插件入口文件
             if (strtolower($info['filename']) === 'plugin') {
                 // 读取出所有公共方法
