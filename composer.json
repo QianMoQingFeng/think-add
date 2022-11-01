@@ -1,16 +1,16 @@
 {
-    "name": "qianmoqingfeng/think-addons",
+    "name": "zz-studio/think-addons",
     "description": "The ThinkPHP6 Addons Package",
     "license": "Apache-2.0",
     "authors": [
         {
-            "name": "qianmoqingfeng",
-            "email": "qianmoqingfeng@qq.com"
+            "name": "byron",
+            "email": "xiaobo.sun@qq.com"
         }
     ],
     "require": {
-        "php": ">=8.0.0",
-        "topthink/framework": "^6.0.12",
+        "php": ">=7.1.0",
+        "topthink/framework": "^6.0",
         "topthink/think-view": "^1.0",
         "topthink/think-helper": "^3.0.0"
     },
@@ -29,9 +29,6 @@
             ],
             "config":{
                 "addons": "src/config.php"
-            },
-            "branch-alias": {
-                "dev-master": "v3.0.1"
             }
         }
     },

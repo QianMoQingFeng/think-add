@@ -1,4 +1,5 @@
 <?php
+
 /**
  * +----------------------------------------------------------------------
  * | think-addons [thinkphp6]
@@ -18,6 +19,7 @@
  * | Copyright (c) 2019 http://www.zzstudio.net All rights reserved.
  * +----------------------------------------------------------------------
  */
+
 declare(strict_types=1);
 
 namespace think;
@@ -43,8 +45,10 @@ abstract class Addons
     protected $addon_config;
     // 插件信息
     protected $addon_info;
+    // 模版后缀
+    protected $view_suffix = 'html';
     // 模块信息
-    protected $addon_model = '';
+    protected $addon_module = '';
     /**
      * 插件构造函数
      * Addons constructor.
@@ -52,24 +56,19 @@ abstract class Addons
      */
     public function __construct(App $app)
     {
+       
         $this->app = $app;
         $this->request = $app->request;
-        $this->name = $this->getName();
-        $this->addon_path = $app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
+        $this->name = $this->getAddonName();
+        $this->addon_module = $this->getAddonModule();
+        $this->addon_path = $app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR . $this->addon_module .( $this->addon_module ? DIRECTORY_SEPARATOR : '');
         $this->addon_config = "addon_{$this->name}_config";
         $this->addon_info = "addon_{$this->name}_info";
         $this->view = clone View::engine('Think');
-     // 兼容插件多应用模式
-     if(mb_strstr( $this->request->pathinfo(),$this->name.'@')){
-        $str_arr = explode('@', $this->request->pathinfo());
-        $str_arr = explode('/', $str_arr[1]);
-        $this->addon_model = $str_arr[0];
-    }
- 
-    $this->view->config([
-        'view_path' => $this->addon_path.($this->addon_model ? ( $this->addon_model.'/'):''). 'view' . DIRECTORY_SEPARATOR
-    ]);
-
+        $this->view->config([
+            'view_suffix' => $this->view_suffix,
+            'view_path' => $this->addon_path . 'view' . DIRECTORY_SEPARATOR
+        ]);
         // 控制器初始化
         $this->initialize();
     }
@@ -77,7 +76,37 @@ abstract class Addons
     // 初始化
     protected function initialize()
     {
-       
+    }
+
+    /**
+     * 获取插件标识
+     * @return mixed|null
+     */
+    final protected function getAddonName()
+    {
+        $class = get_class($this);
+        list(, $name) = explode('\\', $class);
+        if($name=='admin'){
+            return null;
+        }
+        $this->request->addon = $name;
+        return $name;
+    }
+    /**
+     * 获取插件模块
+     * @return mixed|null
+     */
+    final protected function getAddonModule()
+    {
+
+        // 兼容插件多应用模式
+        $module = null;
+        if (mb_strstr($this->request->pathinfo(), $this->getAddonName() . '@')) {
+            $str_arr = explode('@', $this->request->pathinfo());
+            $str_arr = explode('/', $str_arr[1]);
+            $module = $str_arr[0];
+        }
+        return $module;
     }
 
     /**
@@ -87,8 +116,9 @@ abstract class Addons
     final protected function getName()
     {
         $class = get_class($this);
-        list(, $name, ) = explode('\\', $class);
+        list(, $name,) = explode('\\', $class);
         $this->request->addon = $name;
+
         return $name;
     }
 
@@ -125,8 +155,13 @@ abstract class Addons
      */
     protected function assign($name, $value = '')
     {
-        $this->view->assign([$name => $value]);
-
+        $data = [];
+        if (is_array($name)) {
+            $data = array_merge($data, $name);
+        } else {
+            $data[$name] = $value;
+        }
+        $this->view->assign($data);
         return $this;
     }
 
@@ -150,9 +185,11 @@ abstract class Addons
     final public function getInfo()
     {
         $info = Config::get($this->addon_info, []);
+       
         if ($info) {
             return $info;
         }
+        
         // 文件属性
         $info = $this->info ?? [];
         // 文件配置

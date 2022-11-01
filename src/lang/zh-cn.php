@@ -6,7 +6,6 @@ return [
     'addon controller %s not found'               => '插件控制器 %s 未找到',
     'addon action %s not found'                   => '插件控制器方法 %s 未找到',
     'addon can not be empty'                      => '插件不能为空',
-    'admin module url error'                      => '后台模块请按照标准访问，后台入口文件/插件@admin/控制器/方法',
     'Keep login'                                  => '保持会话',
     'Forgot password'                             => '忘记密码?',
     'Username'                                    => '用户名',
