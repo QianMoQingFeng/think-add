@@ -26,10 +26,11 @@ namespace think\addons;
 
 use think\helper\Str;
 use think\facade\Event;
-use think\facade\Config;
 use think\exception\HttpException;
+use think\facade\Lang;
 use think\facade\Log;
 use think\trace\TraceDebug;
+
 class Route
 {
     /**
@@ -41,8 +42,7 @@ class Route
      */
     public static function execute($addon = null, $controller = null, $action = null)
     {
-
-    
+        defined('IS_ADDON') ? null : define('IS_ADDON', true);
 
         $app = app();
         $request = $app->request;
@@ -51,7 +51,7 @@ class Route
         if (empty($addon) || empty($controller) || empty($action)) {
             throw new HttpException(500, lang('addon can not be empty'));
         }
-   
+
         $request->addon = $addon;
         // 设置当前请求的控制器、操作
         $request->setController($controller)->setAction($action);
@@ -63,32 +63,41 @@ class Route
         if (!$info['status']) {
             throw new HttpException(500, lang('addon %s is disabled', [$addon]));
         }
-        // 兼容插件多应用模式
-        if (mb_strstr($request->pathinfo(), $addon . '@') &&  app('http')->getName() != 'admin') {
-            $str_arr = explode('@', $request->pathinfo());
-            $str_arr = explode('/', $str_arr[1]);
-            $addon .= '\\' . $str_arr[0];
-        }
 
-        // 兼容admin模型
-        if (app('http')->getName() == 'admin') {
-            $addon .= '\\' .  'admin';
-        }
-        // 强制admin路径
+        // 监听addon_module_init
+        Event::trigger('addon_module_init', $request);
+
+        // 强制admin模块路径匹配后台url
         if ($request['module'] == 'admin' && $request['module'] != app('http')->getName()) {
             throw new HttpException(500, lang('admin module url error'));
         }
-        // 监听addon_module_init
-        Event::trigger('addon_module_init', $request);
-        $class = get_addons_class($addon, 'controller', $controller);
+        // 是否多应用
+        $is_modules = false;
+        $module = '';
+        // 兼容插件多应用模式
+        if (mb_strstr($request->pathinfo(), $addon . '@')) {
+            $str_arr = explode('@', $request->pathinfo());
+            $str_arr = explode('/', $str_arr[1]);
+            $is_modules = true;
+            $module = $str_arr[0];
+        }
+        // 兼容插件中的admin模块
+        if (app('http')->getName() == 'admin') {
+            $is_modules = true;
+            $module = 'admin';
+        }
+        // dump($app->lang->getLangSet());
+
+
+        $class = get_addons_class($is_modules ? ($addon . '\\' . $module) : $addon, 'controller', $controller);
         if (!$class) {
             throw new HttpException(404, lang('addon controller %s not found', [Str::studly($controller)]));
         }
 
-        // 重写视图基础路径
-        $config = Config::get('view');
-        $config['view_path'] = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR;
-        Config::set($config, 'view');
+        // $config = Config::get('view');
+        // $config['view_path'] = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR;
+        // dump($config['view_path'] );
+        // Config::set($config, 'view');
 
         // 生成控制器对象
         $instance = new $class($app);
