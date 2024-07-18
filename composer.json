@@ -1,16 +1,17 @@
 {
-    "name": "zz-studio/think-addons",
-    "description": "The ThinkPHP6 Addons Package",
+    "name": "qianmoqingfeng/think-addons",
+    "description": "The ThinkPHP8 Addons Package For Spanel",
     "license": "Apache-2.0",
     "authors": [
         {
-            "name": "byron",
-            "email": "xiaobo.sun@qq.com"
+            "name": "qianmoqingfeng",
+            "email": "qianmoqingfeng@qq.com",
+            "wechat":"huocans"
         }
     ],
     "require": {
-        "php": ">=7.1.0",
-        "topthink/framework": "^6.0",
+        "php": ">=8.0",
+        "topthink/framework": "^8.0",
         "topthink/think-view": "^1.0",
         "topthink/think-helper": "^3.0.0"
     },

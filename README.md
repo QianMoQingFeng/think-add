@@ -1,7 +1,7 @@
 # think-addons
-The ThinkPHP 6 Addons Package
+The ThinkPHP 8 Addons Package
 该项目基于zzstudio/think-addons 2.0.5版本二次开发 
-适用于SaetAdmin更好的适配 后续仍会持续维护更新.
+适用于spanel面板 更好的适配 后续仍会持续维护更新.
 
 ## 安装
 > composer require qianmoqingfeng/think-addons
